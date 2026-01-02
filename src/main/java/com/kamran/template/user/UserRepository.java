@@ -1,4 +1,4 @@
-package com.kamran.tco.user;
+package com.kamran.template.user;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

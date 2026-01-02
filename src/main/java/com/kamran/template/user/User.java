@@ -1,10 +1,8 @@
-package com.kamran.tco.user;
+package com.kamran.template.user;
 
-import com.kamran.tco.common.BaseEntity;
+import com.kamran.template.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")

@@ -1,4 +1,4 @@
-package com.kamran.tco.common;
+package com.kamran.template.common;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -30,5 +30,4 @@ public abstract class BaseEntity {
     protected void onUpdate () {
         updatedAt = LocalDateTime.now();
     }
-
 }

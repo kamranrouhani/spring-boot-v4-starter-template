@@ -1,10 +1,10 @@
-package com.kamran.tco;
+package com.kamran.template;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class TcoApplicationTests {
+class TemplateApplicationTests {
 
 	@Test
 	void contextLoads() {
