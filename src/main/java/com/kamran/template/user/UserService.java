@@ -1,5 +1,7 @@
 package com.kamran.template.user;
 
+import com.kamran.template.common.exception.EmailAlreadyExistsException;
+import com.kamran.template.common.exception.UserNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,11 +43,22 @@ public class UserService {
      * Retrieves a single user by their unique identifier.
      *
      * @param id The unique identifier of the user to retrieve
-     * @return UserDto if user is found, null otherwise
+     * @return UserDto if user is found, UserNotFoundException otherwise
      */
     public UserDto getUserById(Long id) {
-        Optional<User> user = userRepository.findById(id);
-        return user.map(UserDto::formEntity).orElse(null);
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        return UserDto.formEntity(user);
+    }
+
+    /**
+     * Retrieves a single user by their unique email.
+     *
+     * @param email The unique email of the user to retrieve
+     * @return UserDto if user is found, UserNotFoundException otherwise
+     */
+    public UserDto getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
+        return UserDto.formEntity(user);
     }
 
     /**
@@ -55,13 +68,13 @@ public class UserService {
      *
      * @param request The creation request containing all required user information
      * @return UserDto representing the newly created user
-     * @throws RuntimeException if a user with the same email already exists
+     * @throws EmailAlreadyExistsException if a user with the same email already exists
      */
     @Transactional
     public UserDto createUser(CreateUserRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new EmailAlreadyExistsException(request.getEmail());
         }
 
         User user = new User();
@@ -80,15 +93,15 @@ public class UserService {
      * Only non-null fields from the request will be updated.
      * Validates email uniqueness if a new email is provided.
      *
-     * @param id The unique identifier of the user to update
+     * @param id      The unique identifier of the user to update
      * @param request The update request containing fields to be modified
      * @return UserDto representing the updated user
      * @throws RuntimeException if user is not found or if new email already exists
      */
     @Transactional
     public UserDto updateUser(Long id, @Valid UpdateUserRequest request) {
-        User user = userRepository.findById(id).orElseThrow(()-> new RuntimeException("User not found") );
-        updateIfPresent(request.getEmail(), user::setEmail, ()-> validateEmailNotTaken(request.getEmail(), user.getEmail()));
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        updateIfPresent(request.getEmail(), user::setEmail, () -> validateEmailNotTaken(request.getEmail(), user.getEmail()));
         updateIfPresent(request.getPassword(), user::setPassword);
         updateIfPresent(request.getFirstName(), user::setFirstName);
         updateIfPresent(request.getLastName(), user::setLastName);
@@ -98,11 +111,25 @@ public class UserService {
     }
 
     /**
+     * Deletes a user from the system by their unique identifier.
+     * Throws UserNotFoundException if the user with the specific id does not exist.
+     *
+     * @param id The unique identifier of the user to delete
+     */
+    @Transactional
+    public void deleteById(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new UserNotFoundException(id);  // ✅ Custom exception
+        }
+        userRepository.deleteById(id);
+    }
+
+    /**
      * Updates a field on the entity if the provided value is not null.
      * This is a utility method to support partial updates.
      *
-     * @param <T> The type of the value being updated
-     * @param value The new value to set (update only if non-null)
+     * @param <T>    The type of the value being updated
+     * @param value  The new value to set (update only if non-null)
      * @param setter The setter method reference to update the field
      */
     private <T> void updateIfPresent(T value, Consumer<T> setter) {
@@ -115,9 +142,9 @@ public class UserService {
      * Updates a field on the entity if the provided value is not null,
      * with an additional validation step before applying the update.
      *
-     * @param <T> The type of the value being updated
-     * @param value The new value to set (update only if non-null)
-     * @param setter The setter method reference to update the field
+     * @param <T>       The type of the value being updated
+     * @param value     The new value to set (update only if non-null)
+     * @param setter    The setter method reference to update the field
      * @param validator The validation logic to run before updating
      */
     private <T> void updateIfPresent(T value, Consumer<T> setter, Runnable validator) {
@@ -131,7 +158,7 @@ public class UserService {
      * Validates that a new email is not already taken by another user.
      * If the new email is the same as the current email, validation passes.
      *
-     * @param newEmail The new email to validate
+     * @param newEmail     The new email to validate
      * @param currentEmail The user's current email
      * @throws RuntimeException if the new email is already taken by another user
      */
@@ -139,15 +166,5 @@ public class UserService {
         if (!newEmail.equals(currentEmail) && userRepository.existsByEmail(newEmail)) {
             throw new RuntimeException("Email is already taken");
         }
-    }
-
-    /**
-     * Deletes a user from the system by their unique identifier.
-     * Note: This method does not verify if the user exists before deletion.
-     *
-     * @param id The unique identifier of the user to delete
-     */
-    public void deleteById(Long id) {
-        userRepository.deleteById(id);
     }
 }
