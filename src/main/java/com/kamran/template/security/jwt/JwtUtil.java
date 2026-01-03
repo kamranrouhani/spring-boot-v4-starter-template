@@ -12,7 +12,6 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -20,7 +19,7 @@ import java.util.function.Function;
  * Handles token generation and validation
  */
 @Component
-public class JwtUtils {
+public class JwtUtil {
 
     // Secret key for signing tokens (from application.yml)
     @Value("${jwt.secret:mySecretKeyThatIsAtLeast256BitsLongForHS256Algorithm}")
