@@ -1,0 +1,22 @@
+# Don't copy these to Docker image
+target/
+!target/*.jar
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+
+# Environment files
+.env
