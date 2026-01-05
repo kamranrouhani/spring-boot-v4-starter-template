@@ -28,6 +28,23 @@
 	</scm>
 	<properties>
 		<java.version>25</java.version>
+        <pmd.skip>false</pmd.skip>
+
+		<!-- Quality gates (set to true to fail the build on violations) -->
+		<checkstyle.fail>false</checkstyle.fail>
+		<pmd.fail>false</pmd.fail>
+		<spotbugs.fail>false</spotbugs.fail>
+		<spotbugs.skip>false</spotbugs.skip>
+		<!-- dependency-check: do not fail build by default (set to a CVSS threshold like 9.0 to fail on high sev)
+		     default set to 11.0 so it never fails until you lower it -->
+		<!-- Skip dependency-check by default (NVD API access can require keys; enable when configured) -->
+		<dependency.check.skip>true</dependency.check.skip>
+		<dependency.check.failThreshold>11.0</dependency.check.failThreshold>
+
+		<!-- JaCoCo minimum coverage (0.0 to avoid failing until tests are added) -->
+		<jacoco.minimum>0.0</jacoco.minimum>
+		<!-- allow skipping JaCoCo for newer JDKs that JaCoCo may not support yet -->
+		<jacoco.skip>false</jacoco.skip>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -116,6 +133,136 @@
 
 	<build>
 		<plugins>
+			<!-- Static analysis and quality tools -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.2.2</version>
+				<executions>
+					<execution>
+						<id>checkstyle</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<!-- Use Google style as a baseline; change as needed -->
+							<configLocation>google_checks.xml</configLocation>
+							<failOnViolation>${checkstyle.fail}</failOnViolation>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.20.0</version>
+				<executions>
+					<execution>
+						<id>pmd</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<failOnViolation>${pmd.fail}</failOnViolation>
+							<!-- allow skipping PMD (useful for newer JDKs where PMD/ASM can't read class files) -->
+							<skip>${pmd.skip}</skip>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>4.7.3.0</version>
+				<executions>
+					<execution>
+						<id>spotbugs</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>spotbugs</goal>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+								<failOnError>${spotbugs.fail}</failOnError>
+								<!-- allow skipping for newer JDKs that SpotBugs doesn't support yet -->
+								<skip>${spotbugs.skip}</skip>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Code coverage: JaCoCo -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.10</version>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+						<configuration>
+							<!-- allow skipping JaCoCo agent instrumentation when running on newer JDKs -->
+							<skip>${jacoco.skip}</skip>
+						</configuration>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>check</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<rule>
+									<element>BUNDLE</element>
+									<limits>
+										<limit>
+											<counter>INSTRUCTION</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>${jacoco.minimum}</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- OWASP dependency-check -->
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>8.3.0</version>
+				<executions>
+					<execution>
+						<id>dependency-check</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+								<!-- skip can be toggled via -Ddependency.check.skip=true/false -->
+								<skip>${dependency.check.skip}</skip>
+								<!-- treat this value as CVSS threshold to fail build; default 11.0 => never fail -->
+								<failBuildOnCVSS>${dependency.check.failThreshold}</failBuildOnCVSS>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
