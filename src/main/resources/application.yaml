@@ -55,6 +55,7 @@ logging:
     org.hibernate.SQL: ${LOG_LEVEL_HIBERNATE_SQL:DEBUG}
     org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_HIBERNATE_BINDER:TRACE}
     com.zaxxer.hikari: ${LOG_LEVEL_HIKARI:INFO}
+    org.flywaydb: ${LOG_LEVEL_FLYWAY:DEBUG}
 
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [%15.15t] %-40.40logger{39} : %m%n"
