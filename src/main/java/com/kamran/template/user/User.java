@@ -24,6 +24,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "User entity representing a system user")
+@Builder
 public class User extends BaseEntity {
 
     /**
@@ -57,5 +58,59 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     @Schema(description = "Last name of the user", example = "Doe")
     private String lastName;
+
+    /**
+     * System role - WHO this user is (USER or ADMIN).
+     * Determines system-level permissions.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    @Schema(description = "User Role", example = "USER")
+    private Role role = Role.USER;
+
+    /**
+     * Subscription tier - WHAT features this user has access to.
+     * Determines feature-level permissions.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    @Schema(description = "Subscription tier of the user", example = "FREE")
+    private SubscriptionTier subscriptionTier = SubscriptionTier.FREE;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean emailVerified = false;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean accountLocked = false;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean enabled = true;
+
+    /**
+     * Helper method: Check if user is admin.
+     */
+    public boolean isAdmin() {
+        return this.role == Role.ADMIN;
+    }
+
+    /**
+     * Helper method: Check if user has at least PRO tier.
+     */
+    public boolean hasProOrHigher() {
+        return this.subscriptionTier == SubscriptionTier.PRO
+                || this.subscriptionTier == SubscriptionTier.PREMIUM;
+    }
+
+    /**
+     * Helper method: Check if user has PREMIUM tier.
+     */
+    public boolean hasPremium() {
+        return this.subscriptionTier == SubscriptionTier.PREMIUM;
+    }
 
 }

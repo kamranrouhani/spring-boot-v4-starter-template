@@ -35,6 +35,11 @@ public class UserDto {
     @Schema(description = "Last name of the user", example = "Doe")
     private String lastName;
 
+    private Role role;  // USER or ADMIN
+    private SubscriptionTier subscriptionTier;  // FREE, PRO, or PREMIUM
+
+
+
     /**
      * Converts a User entity to a UserDto.
      * This method maps all fields from the entity to the DTO except for the password,
@@ -43,7 +48,7 @@ public class UserDto {
      * @param user The User entity to convert
      * @return A new UserDto instance populated with data from the entity
      */
-    public static UserDto formEntity(User user) {
+    public static UserDto fromEntity(User user) {
         UserDto dto = new UserDto();
         dto.setId(user.getId());
         dto.setEmail(user.getEmail());
@@ -51,6 +56,8 @@ public class UserDto {
         dto.setLastName(user.getLastName());
         dto.setCreatedAt(user.getCreatedAt());
         dto.setUpdatedAt(user.getUpdatedAt());
+        dto.setRole(user.getRole());
+        dto.setSubscriptionTier(user.getSubscriptionTier());
         return dto;
     }
 }
