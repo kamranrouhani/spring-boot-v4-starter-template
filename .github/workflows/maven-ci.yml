@@ -48,7 +48,7 @@ jobs:
       - name: Build (run verify - tests skipped for now)
         run: |
           set -euo pipefail
-          MVN_CMD="mvn -B -V -e -T 1C clean verify"
+          MVN_CMD="mvn -B -V -e -T 1C -Djava.version=${{ matrix.java-version }} clean verify"
           if [ "${{ matrix.java-version }}" = "25" ]; then
             echo "Java 25 detected; skipping SpotBugs (incompatible with class file version 69)."
             MVN_CMD="$MVN_CMD -Dspotbugs.skip=true -Dpmd.skip=true -Djacoco.skip=true"
@@ -84,17 +84,23 @@ jobs:
           name: built-jar
           path: target/*.jar
 
-      - name: Start application in background
+      - name: Start application in background (defer JPA until Flyway runs)
         run: |
-          nohup java -jar target/*.jar > app.log 2>&1 &
+          # Defer JPA initialization until after Flyway migrates so Hibernate validation doesn't fail
+          nohup java -Dspring.jpa.defer-datasource-initialization=true -Dspring.flyway.enabled=true -jar target/*.jar > app.log 2>&1 &
           echo $! > pidfile
 
       - name: Wait for application to be responsive
         run: |
           set -e
+          # Try H2 console first (fast check), fallback to searching the log for 'Started' if H2 console not available
           for i in $(seq 1 30); do
             if curl -sSf http://localhost:8080/h2-console > /dev/null; then
-              echo "Application is up"
+              echo "Application is up (h2-console)"
+              exit 0
+            fi
+            if grep -q "Started .* in" app.log; then
+              echo "Application started (log check)"
               exit 0
             fi
             echo "Waiting for application to start ($i/30)..."
