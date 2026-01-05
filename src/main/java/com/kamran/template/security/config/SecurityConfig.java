@@ -52,7 +52,8 @@ public class SecurityConfig {
                                 "/swagger-ui/**", // Swagger UI
                                 "/swagger-ui.html", // Swagger UI HTML page
                                 "/v3/api-docs/**", // OpenAPI docs
-                                "/api-docs/**" // Alternative OpenAPI path
+                                "/api-docs/**", // Alternative OpenAPI path
+                                "/api/auth/verify-email" // for email verification
                         ).permitAll()
                         // ALL other endpoints require authentication
                         .anyRequest().authenticated()
