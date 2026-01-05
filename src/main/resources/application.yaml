@@ -24,10 +24,10 @@ spring:
 
   # Flyway configuration
   flyway:
-    enabled: ${FLYWAY_ENABLED:true}
-    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}  # For existing databases
+    enabled: ${SPRING_FLYWAY_ENABLED:true}
+    baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:true}  # For existing databases
     locations: classpath:db/migration
-    validate-on-migrate: ${FLYWAY_VALIDATE_ON_MIGRATE:true}
+    validate-on-migrate: ${SPRING_FLYWAY_VALIDATE_ON_MIGRATE:true}
     # clean-disabled: true  # CRITICAL: Never allow clean in production!
 
 
