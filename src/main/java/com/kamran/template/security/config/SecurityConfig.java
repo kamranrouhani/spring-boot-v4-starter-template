@@ -48,7 +48,11 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/**", // login, register
                                 "/h2-console/**", // H2 DB console (Dev only)
-                                "/error" // Error page
+                                "/error", // Error page
+                                "/swagger-ui/**", // Swagger UI
+                                "/swagger-ui.html", // Swagger UI HTML page
+                                "/v3/api-docs/**", // OpenAPI docs
+                                "/api-docs/**" // Alternative OpenAPI path
                         ).permitAll()
                         // ALL other endpoints require authentication
                         .anyRequest().authenticated()
