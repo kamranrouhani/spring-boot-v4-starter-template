@@ -35,15 +35,20 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-templatedb}
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}
-      SPRING_DATASOURCE_DRIVER: org.postgresql.Driver  # Added
+      SPRING_DATASOURCE_DRIVER: org.postgresql.Driver
 
       # JPA/Hibernate Configuration
-      SPRING_JPA_HIBERNATE_DDL_AUTO: create
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-validate}
       SPRING_JPA_SHOW_SQL: ${SHOW_SQL:-false}
-      SPRING_JPA_DIALECT: org.hibernate.dialect.PostgreSQLDialect  # Added
+      SPRING_JPA_DIALECT: org.hibernate.dialect.PostgreSQLDialect
 
       # H2 Console (disabled in Docker)
       H2_CONSOLE_ENABLED: false
+
+      # Flyway Configuration
+      FLYWAY_ENABLED: ${FLYWAY_ENABLED:-true}
+      FLYWAY_BASELINE_ON_MIGRATE: ${FLYWAY_BASELINE_ON_MIGRATE:-true}
+      FLYWAY_VALIDATE_ON_MIGRATE: ${FLYWAY_VALIDATE_ON_MIGRATE:-true}
 
       # JWT Configuration
       JWT_SECRET: ${JWT_SECRET}
