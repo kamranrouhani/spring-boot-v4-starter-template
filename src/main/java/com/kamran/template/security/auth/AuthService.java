@@ -6,10 +6,15 @@ import com.kamran.template.security.auth.dto.AuthResponse;
 import com.kamran.template.security.auth.dto.LoginRequest;
 import com.kamran.template.security.auth.dto.RegisterRequest;
 import com.kamran.template.security.auth.dto.RegisterResponse;
+import com.kamran.template.security.auth.email.EmailService;
+import com.kamran.template.security.auth.verification_token.TokenType;
+import com.kamran.template.security.auth.verification_token.VerificationToken;
+import com.kamran.template.security.auth.verification_token.VerificationTokenService;
 import com.kamran.template.security.jwt.JwtUtil;
 import com.kamran.template.user.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,34 +35,26 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
+    private final EmailService emailService;
+    private final VerificationTokenService verificationTokenService;
 
+    @Value("${app.email.verification-url}")
+    private String verificationBaseUrl;
 
     /**
-     * Register a new user.
-     * <p>
-     * Flow:
-     * 1. Check if email already exists
-     * 2. Hash the password with BCrypt
-     * 3. Save user to database
-     * 4. Generate JWT token
-     * 5. Return token + user info
-     *
-     * @param request Registration details (email, password, firstName, lastName)
-     * @return AuthResponse with JWT token and user info
-     * @throws EmailAlreadyExistsException if email is already registered
+     * Register a new user and send verification email
      */
     @Transactional
     public RegisterResponse register(RegisterRequest request) {
         log.info("Attempting to register user with email: {}", request.getEmail());
 
-        // check if the user already exists
+        // Check if user already exists
         if (userRepository.existsByEmail(request.getEmail())) {
             log.warn("Registration failed - email already exists: {}", request.getEmail());
-
             throw new EmailAlreadyExistsException("Email " + request.getEmail() + " is already registered");
         }
 
-        // create new user with hashed password
+        // Create new user with hashed password
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -65,29 +62,34 @@ public class AuthService {
                 .lastName(request.getLastName())
                 .role(Role.USER)
                 .subscriptionTier(SubscriptionTier.FREE)
+                .emailVerified(false)  // Not verified yet
+                .enabled(true)
+                .accountLocked(false)
                 .build();
 
-
-        // save user to DB
+        // Save user to DB
         User savedUser = userRepository.save(user);
-
         log.info("User registered successfully: {}", savedUser.getEmail());
 
-        // TODO: Email verification workflow
-//        // Generate verification token
-//        String token = verificationTokenService.createVerificationToken(
-//                savedUser,
-//                TokenType.EMAIL_VERIFICATION
-//        );
-//
-//        // Send verification email
-//        emailService.sendVerificationEmail(savedUser.getEmail(), token);
-//        log.info("Verification email sent to: {}", savedUser.getEmail());
+        // Generate verification token
+        String token = verificationTokenService.createVerificationToken(
+                savedUser,
+                TokenType.EMAIL_VERIFICATION
+        );
 
-        // generate jwt token
-        String token = jwtUtil.generateToken(savedUser.getEmail());
+        // Build verification URL
+        String verificationUrl = verificationBaseUrl + "?token=" + token;
 
-        // return token and the user info
+        // Send verification email (async)
+        emailService.sendVerificationEmail(
+                savedUser.getEmail(),
+                savedUser.getFirstName(),
+                verificationUrl,
+                verificationTokenService.getTokenValidityHours()
+        );
+
+        log.info("Verification email sent to: {}", savedUser.getEmail());
+
         return RegisterResponse.builder()
                 .email(savedUser.getEmail())
                 .message("Registration successful. Please check your email to verify your account.")
@@ -95,7 +97,35 @@ public class AuthService {
     }
 
     /**
-     * Login and generate JWT token.
+     * Verify email with token
+     */
+    @Transactional
+    public String verifyEmail(String tokenString) {
+        log.info("Attempting to verify email with token");
+
+        // Validate token (throws InvalidTokenException if invalid)
+        VerificationToken token = verificationTokenService.validateToken(tokenString);
+
+        // Get user from token
+        User user = token.getUser();
+
+        // Mark user as verified
+        user.setEmailVerified(true);
+        userRepository.save(user);
+
+        // Mark token as used
+        verificationTokenService.markTokenAsVerified(token);
+
+        log.info("Email verified successfully for user: {}", user.getEmail());
+
+        // Send welcome email (async)
+        emailService.sendWelcomeEmail(user.getEmail(), user.getFirstName());
+
+        return "Email verified successfully! You can now log in.";
+    }
+
+    /**
+     * Login and generate JWT token
      */
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
@@ -105,11 +135,14 @@ public class AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
 
+        // Check if email is verified
         if (!user.getEmailVerified()) {
+            log.warn("Login failed - email not verified: {}", request.getEmail());
             throw new EmailNotVerifiedException();
         }
 
         try {
+            // Authenticate user
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getEmail(),
@@ -122,12 +155,11 @@ public class AuthService {
             log.info("User authenticated successfully: {}",
                     Optional.ofNullable(userDetails.getUsername()).orElse("unknown"));
 
-
+            // Generate JWT token
             String token = jwtUtil.generateToken(user.getEmail());
 
             return AuthResponse.builder()
-                    .accessToken("accessToken") // TODO: accessToken to be added
-                    .refreshToken("refreshToken") // TODO: refreshToken to be added
+                    .accessToken(token)
                     .tokenType("Bearer")
                     .expiresIn(jwtUtil.getExpirationTime(token))
                     .user(UserDto.fromEntity(user))
@@ -140,12 +172,7 @@ public class AuthService {
     }
 
     /**
-     * Get current user information by email.
-     * Fetches the latest user data from database.
-     *
-     * @param email User's email (extracted from JWT)
-     * @return UserDto with current user information (excluding password)
-     * @throws org.springframework.security.core.userdetails.UsernameNotFoundException if user not found
+     * Get current user information by email
      */
     @Transactional(readOnly = true)
     public UserDto getCurrentUser(String email) {

@@ -23,6 +23,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -97,6 +99,14 @@ public class AuthController {
         RegisterResponse response = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @GetMapping("/verify-email")
+    @Operation(summary = "Verify email address", description = "Verifies user email using token from verification email")
+    public ResponseEntity<Map<String, String>> verifyEmail(@RequestParam String token) {
+        String message = authService.verifyEmail(token);
+        return ResponseEntity.ok(Map.of("message", message));
+    }
+
 
     /**
      * Login and get JWT token.
