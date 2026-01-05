@@ -18,30 +18,61 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
       interval: 10s
       timeout: 5s
-      retries: 6
+      retries: 5
 
-
-  # Spring boot application
+  # Spring Boot Application
   backend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: template_backend
+    container_name: template-backend
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
     environment:
+      # Database Configuration
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-templatedb}
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: ${SHOW_SQL:-true}
+      SPRING_DATASOURCE_DRIVER: org.postgresql.Driver
+
+      # JPA/Hibernate Configuration
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-validate}
+      SPRING_JPA_SHOW_SQL: ${SHOW_SQL:-false}
+      SPRING_JPA_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+
+      # H2 Console (disabled in Docker)
+      H2_CONSOLE_ENABLED: false
+
+      # Flyway Configuration
+      SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:-true}
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:-true}
+      SPRING_FLYWAY_VALIDATE_ON_MIGRATE: ${SPRING_FLYWAY_VALIDATE_ON_MIGRATE:-true}
+
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+
+      # Logging Levels
+      LOG_LEVEL_ROOT: ${LOG_LEVEL_ROOT:-WARN}
+      LOG_LEVEL_APP: ${LOG_LEVEL_APP:-INFO}
+      LOG_LEVEL_SPRING_WEB: ${LOG_LEVEL_SPRING_WEB:-WARN}
+      LOG_LEVEL_SPRING_SECURITY: ${LOG_LEVEL_SPRING_SECURITY:-WARN}
+      LOG_LEVEL_SPRING_BOOT: ${LOG_LEVEL_SPRING_BOOT:-WARN}
+      LOG_LEVEL_HIBERNATE_SQL: ${LOG_LEVEL_HIBERNATE_SQL:-WARN}
+      LOG_LEVEL_HIBERNATE_BINDER: ${LOG_LEVEL_HIBERNATE_BINDER:-WARN}
+      LOG_LEVEL_HIKARI: ${LOG_LEVEL_HIKARI:-WARN}
+      LOG_LEVEL_FLYWAY: DEBUG
+
+      # Server Configuration
+      SERVER_PORT: 8080  # Internal container port
     ports:
       - "${APP_PORT:-8080}:8080"
     networks:
       - template-network
 
+  # Database Admin Tool
   adminer:
     image: adminer:latest
     container_name: template-adminer

@@ -2,15 +2,12 @@ package com.kamran.template.user;
 
 import com.kamran.template.common.exception.EmailAlreadyExistsException;
 import com.kamran.template.common.exception.UserNotFoundException;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -36,7 +33,7 @@ public class UserService {
      */
     public List<UserDto> getAllUsers() {
         List<User> users = userRepository.findAll();
-        return users.stream().map(UserDto::formEntity).toList();
+        return users.stream().map(UserDto::fromEntity).toList();
     }
 
     /**
@@ -47,7 +44,7 @@ public class UserService {
      */
     public UserDto getUserById(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        return UserDto.formEntity(user);
+        return UserDto.fromEntity(user);
     }
 
     /**
@@ -58,7 +55,7 @@ public class UserService {
      */
     public UserDto getUserByEmail(String email) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
-        return UserDto.formEntity(user);
+        return UserDto.fromEntity(user);
     }
 
     /**
@@ -85,7 +82,7 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
 
-        return UserDto.formEntity(savedUser);
+        return UserDto.fromEntity(savedUser);
     }
 
     /**
@@ -106,7 +103,7 @@ public class UserService {
         updateIfPresent(request.getFirstName(), user::setFirstName);
         updateIfPresent(request.getLastName(), user::setLastName);
 
-        return UserDto.formEntity(user);
+        return UserDto.fromEntity(user);
 
     }
 
