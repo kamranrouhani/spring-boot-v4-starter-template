@@ -121,8 +121,8 @@
 
 		<!-- Flyway for database migrations -->
 		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-core</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-flyway</artifactId>
 		</dependency>
 
 		<!-- Flyway PostgreSQL support (if using PostgreSQL) -->
@@ -134,6 +134,17 @@
 	</dependencies>
 
 	<build>
+
+<!--		<resources>-->
+<!--			<resource>-->
+<!--				<directory>src/main/resources</directory>-->
+<!--				<filtering>false</filtering>-->
+<!--				<includes>-->
+<!--					<include>**/*</include>-->
+<!--				</includes>-->
+<!--			</resource>-->
+<!--		</resources>-->
+
 		<plugins>
 			<!-- Static analysis and quality tools -->
 			<plugin>
