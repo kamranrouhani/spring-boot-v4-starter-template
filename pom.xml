@@ -28,6 +28,8 @@
 	</scm>
 	<properties>
 		<java.version>25</java.version>
+		<!-- Allow overriding compiler.release at build time (e.g., -Dcompiler.release=17) -->
+		<compiler.release>25</compiler.release>
         <pmd.skip>false</pmd.skip>
 
 		<!-- Quality gates (set to true to fail the build on violations) -->
@@ -267,6 +269,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
+					<release>${compiler.release}</release>
 					<annotationProcessorPaths>
 						<path>
 							<groupId>org.projectlombok</groupId>
