@@ -204,8 +204,8 @@ public class AuthController {
      *   "lastName": "Developer",
      *   "role": "USER",
      *   "subscriptionTier": "FREE",
-     *   "createdAt": "2025-01-01T12:00:00",
-     *   "updatedAt": "2025-01-02T15:30:00"
+     *   "createdAt": "2026-01-01T12:00:00",
+     *   "updatedAt": "2026-01-02T15:30:00"
      * }
      */
     @Operation(
@@ -229,8 +229,8 @@ public class AuthController {
                                               "lastName": "Developer",
                                               "role": "USER",
                                               "subscriptionTier": "FREE",
-                                              "createdAt": "2025-01-01T12:00:00",
-                                              "updatedAt": "2025-01-02T15:30:00"
+                                              "createdAt": "2026-01-01T12:00:00",
+                                              "updatedAt": "2026-01-02T15:30:00"
                                             }
                                             """
                             )

@@ -20,10 +20,10 @@ public class UserDto {
     @Schema(description = "Unique identifier of the user", example = "1")
     private Long Id;
 
-    @Schema(description = "Timestamp when the user was created", example = "2025-01-01T12:00:00")
+    @Schema(description = "Timestamp when the user was created", example = "2026-01-01T12:00:00")
     private LocalDateTime createdAt;
 
-    @Schema(description = "Timestamp when the user was last updated", example = "2025-01-02T15:30:00")
+    @Schema(description = "Timestamp when the user was last updated", example = "2026-01-02T15:30:00")
     private LocalDateTime updatedAt;
 
     @Schema(description = "Email address of the user", example = "john.doe@example.com")
