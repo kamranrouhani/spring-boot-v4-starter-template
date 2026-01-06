@@ -30,7 +30,7 @@ public class UpdateUserRequest {
     @Schema(
             description = "New password for the user (minimum 8 characters if provided)",
             example = "NewSecurePass456",
-            required = false,
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED,
             minLength = 8
     )
     @Size(min = 8, message = "Password must be at least 8 characters")
