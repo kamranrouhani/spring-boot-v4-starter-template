@@ -134,11 +134,13 @@ jobs:
             ${{ runner.os }}-m2-
 
       - name: Run integration tests
-        run: mvn -B test -Pintegration-tests -Dspring.profiles.active=test
+        run: mvn -B test -Pintegration-tests
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
           SPRING_DATASOURCE_USERNAME: test
           SPRING_DATASOURCE_PASSWORD: test
+          SPRING_DATASOURCE_DRIVER: org.postgresql.Driver
+          SPRING_JPA_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
 
       - name: Upload integration test reports
         if: always()
