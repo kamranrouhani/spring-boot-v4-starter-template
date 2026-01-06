@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Service
@@ -79,6 +80,25 @@ public class EmailService {
         sendTemplatedEmail(to, EmailTemplate.PASSWORD_RESET, variables);
     }
 
+
+    /**
+     * @param to
+     * @param userName
+     * @param changeDate Send Password successfully changed email
+     */
+    @Async("emailTaskExecutor")
+    public void sendPasswordChangedEmail(String to, String userName, LocalDateTime changeDate) {
+        log.info("Preparing password changed notification for: {}", to);
+
+        Map<String, Object> variables = Map.of(
+                "userName", userName,
+                "changeDate", changeDate,
+                "subject", EmailTemplate.PASSWORD_CHANGED.getSubject()
+        );
+
+        sendTemplatedEmail(to, EmailTemplate.PASSWORD_CHANGED, variables);
+    }
+
     /**
      * Generic method to send templated email
      *
@@ -124,4 +144,14 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    @Async("emailTaskExecutor")
+    public void sendMFACodeEmail(String to, String userName, String code) {
+        Map<String, Object> variables = Map.of(
+                "userName", userName,
+                "code", code,
+                "expiryMinutes", 10,
+                "subject", "Your MFA Code"
+        );
+        sendTemplatedEmail(to, EmailTemplate.MFA_CODE, variables);
+    }
 }

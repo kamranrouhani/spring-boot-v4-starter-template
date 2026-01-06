@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<h2>Your MFA Code</h2>
+<p>Hi <strong th:text="${userName}">there</strong>,</p>
+<h1 style="font-size: 48px; letter-spacing: 8px;" th:text="${code}">123456</h1>
+<p>This code expires in <span th:text="${expiryMinutes}">10</span> minutes.</p>
+</body>
+</html>

@@ -29,6 +29,12 @@ public enum EmailTemplate {
             "Password Changed Successfully",
             "password-changed.html",
             "Your password has been updated"
+    ),
+
+    MFA_CODE(
+            "Your Security Code",
+            "mfa-code.html",
+            "Verify your identity."
     );
 
     /**
