@@ -160,7 +160,7 @@ public class AuthService {
 
             if (user.getMfaEnabled()) {
                 // Generate and send MFA code
-                String code = mfaService.generateAndSendCode(user);
+                mfaService.generateAndSendCode(user);
 
                 return MFARequiredResponse.builder()
                         .message("MFA code sent to your email")
