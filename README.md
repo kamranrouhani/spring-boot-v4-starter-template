@@ -182,13 +182,34 @@ Includes:
 
 ### Testing
 
+The project includes comprehensive unit tests covering business logic, error handling, and edge cases.
+
 ```bash
 # Unit tests only
 ./mvnw test
 
+# Unit tests with coverage report
+./mvnw test jacoco:report
+
 # Integration tests
 ./mvnw verify -Dspring.profiles.active=test
+
+# Run specific test class
+./mvnw test -Dtest=AuthServiceTest
+
+# Run specific test method
+./mvnw test -Dtest=AuthServiceTest#login_ShouldReturnAuthResponse_WhenCredentialsValidAndNoMFA
 ```
+
+**Test Coverage:**
+- **UserService**: CRUD operations, validation, error handling
+- **AuthService**: Registration, login, MFA, password reset, email verification
+- **User Entity**: Business logic methods, builder patterns
+- **36 total unit tests** with comprehensive mocking and assertions
+
+**Test Reports:**
+- Test results: `target/surefire-reports/`
+- Coverage reports: `target/site/jacoco/` (open `index.html`)
 
 ### Building
 
