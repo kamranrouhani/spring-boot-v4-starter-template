@@ -43,7 +43,7 @@ public abstract class BaseEntity {
      * Cannot be updated after creation.
      */
     @Column(nullable = false, updatable = false)
-    @Schema(description = "Timestamp when entity was created", example = "2025-01-01T12:00:00")
+    @Schema(description = "Timestamp when entity was created", example = "2026-01-01T12:00:00")
     private LocalDateTime createdAt;
 
     /**
@@ -51,7 +51,7 @@ public abstract class BaseEntity {
      * Automatically set on creation and updated on every modification.
      */
     @Column(nullable = false)
-    @Schema(description = "Timestamp when entity was last updated", example = "2025-01-02T15:30:00")
+    @Schema(description = "Timestamp when entity was last updated", example = "2026-01-02T15:30:00")
     private LocalDateTime updatedAt;
 
     /**

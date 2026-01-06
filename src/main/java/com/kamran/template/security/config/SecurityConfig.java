@@ -46,7 +46,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // public endpoints (no authentication required)
                         .requestMatchers(
-                                "/api/auth/**", // login, register
+                                "/api/auth/**", // login, register, forgot-password, reset-password
                                 "/h2-console/**", // H2 DB console (Dev only)
                                 "/error", // Error page
                                 "/swagger-ui/**", // Swagger UI

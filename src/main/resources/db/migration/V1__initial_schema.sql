@@ -29,6 +29,7 @@ CREATE TABLE users (
     email_verified BOOLEAN NOT NULL DEFAULT FALSE,
     account_locked BOOLEAN NOT NULL DEFAULT FALSE,
     enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    mfa_enabled BOOLEAN NOT NULL DEFAULT FALSE,
 
     -- Constraints
     CONSTRAINT chk_users_role CHECK (role IN ('USER', 'ADMIN')),
@@ -134,3 +135,27 @@ INSERT INTO users (
     true,
     true
 );
+
+-- Create MFA codes table
+CREATE TABLE mfa_codes (
+    id BIGSERIAL PRIMARY KEY,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    code VARCHAR(6) NOT NULL,
+    user_id BIGINT NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    verified_at TIMESTAMP,
+
+    CONSTRAINT fk_mfa_codes_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+-- Index for quick lookup
+CREATE INDEX idx_mfa_codes_user_id ON mfa_codes(user_id);
+CREATE INDEX idx_mfa_codes_code ON mfa_codes(code);
+CREATE INDEX idx_mfa_codes_expires_at ON mfa_codes(expires_at);
+
+COMMENT ON TABLE mfa_codes IS 'Temporary MFA codes for email-based two-factor authentication';

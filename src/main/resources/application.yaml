@@ -25,11 +25,39 @@ spring:
   # Flyway configuration
   flyway:
     enabled: ${SPRING_FLYWAY_ENABLED:true}
-    baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:true}  # For existing databases
     locations: classpath:db/migration
-    validate-on-migrate: ${SPRING_FLYWAY_VALIDATE_ON_MIGRATE:true}
-    # clean-disabled: true  # CRITICAL: Never allow clean in production!
 
+    # PRODUCTION-SAFE DEFAULTS
+    clean-disabled: ${SPRING_FLYWAY_CLEAN_DISABLED:true}
+    validate-on-migrate: ${SPRING_FLYWAY_VALIDATE_ON_MIGRATE:true}
+    baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:false}
+
+  # Email Configuration
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:false}  # ← CHANGED: Now configurable via env var
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS:false}  # ← CHANGED: Now configurable
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+  messages:
+    basename: messages
+    fallback-to-system-locale: false
+
+# Application-specific settings
+app:
+  email:
+    from: ${APP_EMAIL_FROM:noreply@template.com}
+    verification-url: ${APP_EMAIL_VERIFICATION_URL:http://localhost:8080/api/auth/verify-email}
+  verification:
+    token-validity-hours: ${APP_VERIFICATION_TOKEN_VALIDITY:24}
 
 jwt:
   secret: ${JWT_SECRET:only-for-local-testing-change-in-production}  # Added default
@@ -56,6 +84,7 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_HIBERNATE_BINDER:TRACE}
     com.zaxxer.hikari: ${LOG_LEVEL_HIKARI:INFO}
     org.flywaydb: ${LOG_LEVEL_FLYWAY:DEBUG}
+    org.springframework.mail: ${LOG_LEVEL_MAIL:DEBUG}
 
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [%15.15t] %-40.40logger{39} : %m%n"

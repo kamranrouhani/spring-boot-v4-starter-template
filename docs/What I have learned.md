@@ -1,0 +1,2 @@
+I learned so many deal of items here in this project. the most important topic IMO was to be able to implement the full security implementation myself, without using any external auth server or keycloak or Auth0. using pure spring security.
+I also learned about messages.properties in the resources folder, which gives us the possibility to customize and send messages to frontend based on the user locale, which is something I always wondered about how to do it. 
