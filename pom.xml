@@ -15,10 +15,16 @@
 	<description>the backend for the template Project</description>
 	<url/>
 	<licenses>
-		<license/>
+		<license>
+			<name>MIT License</name>
+			<url>https://opensource.org/licenses/MIT</url>
+		</license>
 	</licenses>
 	<developers>
-		<developer/>
+		<developer>
+			<name>Kamran Rouhani</name>
+			<email>kamran.rouhani@outlook.com</email>
+		</developer>
 	</developers>
 	<scm>
 		<connection/>
