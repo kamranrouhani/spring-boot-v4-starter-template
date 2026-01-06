@@ -3,7 +3,6 @@ package com.kamran.template.security.auth.email;
 import com.kamran.template.config.EmailConfig;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;

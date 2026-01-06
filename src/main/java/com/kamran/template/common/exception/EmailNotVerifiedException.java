@@ -1,7 +1,5 @@
 package com.kamran.template.common.exception;
 
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 public class EmailNotVerifiedException extends RuntimeException {
 
     public EmailNotVerifiedException() {

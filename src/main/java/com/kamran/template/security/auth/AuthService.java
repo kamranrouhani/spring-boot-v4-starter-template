@@ -15,8 +15,6 @@ import com.kamran.template.security.auth.verification_token.VerificationToken;
 import com.kamran.template.security.auth.verification_token.VerificationTokenService;
 import com.kamran.template.security.jwt.JwtUtil;
 import com.kamran.template.user.*;
-import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
