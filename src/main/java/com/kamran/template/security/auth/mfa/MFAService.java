@@ -6,13 +6,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class MFAService {
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
     private final MFACodeRepository mfaCodeRepository;
     private final EmailService emailService;
 
@@ -21,7 +23,7 @@ public class MFAService {
         mfaCodeRepository.deleteByUser(user);
 
         // Generate 6-digit code
-        String code = String.format("%06d", new Random().nextInt(999999));
+        String code = String.format("%06d", SECURE_RANDOM.nextInt(999999));
 
         // Save with 10-min expiry
         MFACode mfaCode = MFACode.builder()

@@ -39,9 +39,9 @@
         <pmd.skip>false</pmd.skip>
 
 		<!-- Quality gates (set to true to fail the build on violations) -->
-		<checkstyle.fail>false</checkstyle.fail>
-		<pmd.fail>false</pmd.fail>
-		<spotbugs.fail>false</spotbugs.fail>
+		<checkstyle.fail>true</checkstyle.fail>
+		<pmd.fail>true</pmd.fail>
+		<spotbugs.fail>true</spotbugs.fail>
 		<spotbugs.skip>false</spotbugs.skip>
 		<!-- dependency-check: do not fail build by default (set to a CVSS threshold like 9.0 to fail on high sev)
 		     default set to 11.0 so it never fails until you lower it -->
@@ -176,8 +176,9 @@
 							<goal>check</goal>
 						</goals>
 						<configuration>
-							<!-- Use Google style as a baseline; change as needed -->
-							<configLocation>google_checks.xml</configLocation>
+							<!-- Spring Boot checkstyle configuration - practical and well-tested -->
+							<configLocation>https://raw.githubusercontent.com/spring-projects/spring-boot/main/src/checkstyle/checkstyle.xml</configLocation>
+							<suppressionsLocation>config/checkstyle/suppressions.xml</suppressionsLocation>
 							<failOnViolation>${checkstyle.fail}</failOnViolation>
 						</configuration>
 					</execution>
@@ -187,7 +188,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
-				<version>3.20.0</version>
+				<version>3.28.0</version>
 				<executions>
 					<execution>
 						<id>pmd</id>
@@ -272,7 +273,7 @@
 				</executions>
 			</plugin>
 
-			<!-- OWASP dependency-check -->
+			<!-- OWASP dependency-check - disabled in CI due to NVD API issues -->
 			<plugin>
 				<groupId>org.owasp</groupId>
 				<artifactId>dependency-check-maven</artifactId>
@@ -285,10 +286,10 @@
 							<goal>check</goal>
 						</goals>
 						<configuration>
-								<!-- skip can be toggled via -Ddependency.check.skip=true/false -->
-								<skip>${dependency.check.skip}</skip>
-								<!-- treat this value as CVSS threshold to fail build; default 11.0 => never fail -->
-								<failBuildOnCVSS>${dependency.check.failThreshold}</failBuildOnCVSS>
+							<!-- skip can be toggled via -Ddependency.check.skip=true/false -->
+							<skip>true</skip> <!-- Always skip in CI due to NVD API issues -->
+							<!-- treat this value as CVSS threshold to fail build; default 11.0 => never fail -->
+							<failBuildOnCVSS>${dependency.check.failThreshold}</failBuildOnCVSS>
 						</configuration>
 					</execution>
 				</executions>

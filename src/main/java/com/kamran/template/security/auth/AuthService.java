@@ -14,9 +14,12 @@ import com.kamran.template.security.auth.verification_token.TokenType;
 import com.kamran.template.security.auth.verification_token.VerificationToken;
 import com.kamran.template.security.auth.verification_token.VerificationTokenService;
 import com.kamran.template.security.jwt.JwtUtil;
-import com.kamran.template.user.*;
-import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
+import com.kamran.template.user.Role;
+import com.kamran.template.user.SubscriptionTier;
+import com.kamran.template.user.User;
+import com.kamran.template.user.UserDto;
+import com.kamran.template.user.UserRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -160,7 +163,7 @@ public class AuthService {
 
             if (user.getMfaEnabled()) {
                 // Generate and send MFA code
-                String code = mfaService.generateAndSendCode(user);
+                mfaService.generateAndSendCode(user);
 
                 return MFARequiredResponse.builder()
                         .message("MFA code sent to your email")

@@ -1,0 +1,47 @@
+repos:
+  # Code quality checks
+  - repo: local
+    hooks:
+      - id: spotbugs-check
+        name: SpotBugs (Bug detection)
+        entry: mvn spotbugs:check -Dspotbugs.skip=false -q
+        language: system
+        pass_filenames: false
+        files: \.(java)$
+
+      - id: pmd-check
+        name: PMD (Code quality)
+        entry: mvn pmd:check -Dpmd.skip=false -q
+        language: system
+        pass_filenames: false
+        files: \.(java)$
+
+      - id: checkstyle-check
+        name: Checkstyle (Code style - informational)
+        entry: mvn checkstyle:check -q
+        language: system
+        pass_filenames: false
+        files: \.(java)$
+        always_run: true
+
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        files: \.(java|xml|yml|yaml|md)$
+      - id: end-of-file-fixer
+        files: \.(java|xml|yml|yaml|md)$
+      - id: check-merge-conflict
+      - id: check-yaml
+        files: \.(yml|yaml)$
+      - id: check-xml
+        files: \.(xml)$
+
+  # Java-specific checks
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: v2.14.0
+    hooks:
+      - id: pretty-format-java
+        args: [--autofix]
+        files: \.(java)$

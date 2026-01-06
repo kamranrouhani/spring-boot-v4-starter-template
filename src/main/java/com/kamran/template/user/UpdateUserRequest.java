@@ -2,7 +2,6 @@ package com.kamran.template.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -23,7 +22,7 @@ public class UpdateUserRequest {
     @Schema(
             description = "New email address for the user (must be unique if provided)",
             example = "newemail@example.com",
-            required = false
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED
     )
     @Email(message = "Must be a valid Email")
     private String email;
@@ -31,7 +30,7 @@ public class UpdateUserRequest {
     @Schema(
             description = "New password for the user (minimum 8 characters if provided)",
             example = "NewSecurePass456",
-            required = false,
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED,
             minLength = 8
     )
     @Size(min = 8, message = "Password must be at least 8 characters")
@@ -40,7 +39,7 @@ public class UpdateUserRequest {
     @Schema(
             description = "New first name for the user",
             example = "Jane",
-            required = false,
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED,
             maxLength = 50
     )
     @Size(max = 50, message = "First name must not exceed 50 characters")
@@ -49,7 +48,7 @@ public class UpdateUserRequest {
     @Schema(
             description = "New last name for the user",
             example = "Smith",
-            required = false,
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED,
             maxLength = 50
     )
     @Size(max = 50, message = "Last name must not exceed 50 characters")
