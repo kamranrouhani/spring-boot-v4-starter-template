@@ -4,6 +4,7 @@ import com.kamran.template.security.auth.dto.AuthResponse;
 import com.kamran.template.security.auth.dto.LoginRequest;
 import com.kamran.template.security.auth.dto.RegisterRequest;
 import com.kamran.template.security.auth.dto.RegisterResponse;
+import com.kamran.template.security.auth.mfa.VerifyMFARequest;
 import com.kamran.template.user.UserDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -171,9 +172,9 @@ public class AuthController {
             )
     })
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<Object> login(@Valid @RequestBody LoginRequest request) {
         log.debug("Login request received for email: {}", request.getEmail());
-        AuthResponse response = authService.login(request);
+        Object response = authService.login(request);
         return ResponseEntity.ok(response);
     }
 
@@ -251,5 +252,28 @@ public class AuthController {
         UserDto currentUser = authService.getCurrentUser(userDetails.getUsername());
 
         return ResponseEntity.ok(currentUser);
+    }
+
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Request password reset", description = "Send password reset email")
+    public ResponseEntity<Map<String, String>> forgotPassword(@RequestParam String email) {
+        String message = authService.forgotPassword(email);
+        return ResponseEntity.ok(Map.of("message", message));
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password", description = "Reset password with token")
+    public ResponseEntity<Map<String, String>> resetPassword(
+            @RequestParam String token,
+            @RequestParam String newPassword) {
+        String message = authService.resetPassword(token, newPassword);
+        return ResponseEntity.ok(Map.of("message", message));
+    }
+
+    @PostMapping("/verify-mfa")
+    public ResponseEntity<AuthResponse> verifyMFA(@Valid @RequestBody VerifyMFARequest request) {
+        AuthResponse response = authService.verifyMFA(request.getEmail(), request.getCode());
+        return ResponseEntity.ok(response);
     }
 }

@@ -2,16 +2,21 @@ package com.kamran.template.security.auth;
 
 import com.kamran.template.common.exception.EmailAlreadyExistsException;
 import com.kamran.template.common.exception.EmailNotVerifiedException;
+import com.kamran.template.common.exception.InvalidTokenException;
 import com.kamran.template.security.auth.dto.AuthResponse;
 import com.kamran.template.security.auth.dto.LoginRequest;
 import com.kamran.template.security.auth.dto.RegisterRequest;
 import com.kamran.template.security.auth.dto.RegisterResponse;
 import com.kamran.template.security.auth.email.EmailService;
+import com.kamran.template.security.auth.mfa.MFARequiredResponse;
+import com.kamran.template.security.auth.mfa.MFAService;
 import com.kamran.template.security.auth.verification_token.TokenType;
 import com.kamran.template.security.auth.verification_token.VerificationToken;
 import com.kamran.template.security.auth.verification_token.VerificationTokenService;
 import com.kamran.template.security.jwt.JwtUtil;
 import com.kamran.template.user.*;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -37,6 +43,8 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
     private final VerificationTokenService verificationTokenService;
+    private final AuthMessages authMessages;
+    private final MFAService mfaService;
 
     @Value("${app.email.verification-url}")
     private String verificationBaseUrl;
@@ -127,8 +135,8 @@ public class AuthService {
     /**
      * Login and generate JWT token
      */
-    @Transactional(readOnly = true)
-    public AuthResponse login(LoginRequest request) {
+    @Transactional
+    public Object login(LoginRequest request) {
         log.debug("Login attempt for email: {}", request.getEmail());
 
         // First, check if user exists and email is verified
@@ -150,10 +158,22 @@ public class AuthService {
                     )
             );
 
+            if (user.getMfaEnabled()) {
+                // Generate and send MFA code
+                String code = mfaService.generateAndSendCode(user);
+
+                return MFARequiredResponse.builder()
+                        .message("MFA code sent to your email")
+                        .mfaRequired(true)
+                        .build();
+            }
+
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-            log.info("User authenticated successfully: {}",
-                    Optional.ofNullable(userDetails.getUsername()).orElse("unknown"));
+            if (userDetails != null) {
+                log.info("User authenticated successfully: {}",
+                        Optional.of(userDetails.getUsername()).orElse("unknown"));
+            }
 
             // Generate JWT token
             String token = jwtUtil.generateToken(user.getEmail());
@@ -189,4 +209,93 @@ public class AuthService {
         return UserDto.fromEntity(user);
     }
 
+    /**
+     * Initiate password reset - send email with reset link
+     */
+    @Transactional
+    public String forgotPassword(String email) {
+        log.info("Password reset requested for: {}", email);
+
+        User user = userRepository.findByEmail(email).orElse(null);
+
+        if (user == null) {
+            log.warn("Password reset request for non-existing email: {}", email);
+            return authMessages.passwordResetLinkSent();
+        }
+
+        String token = verificationTokenService.createVerificationToken(
+                user,
+                TokenType.PASSWORD_RESET
+        );
+
+        String resetUrl = verificationBaseUrl.replace("verify-email", "reset-password") + "?token=" + token;
+
+        emailService.sendPasswordResetEmail(
+                user.getEmail(),
+                user.getFirstName(),
+                resetUrl,
+                1
+        );
+
+        log.info("Password reset email sent to: {}", email);
+
+        return authMessages.passwordResetLinkSent();
+
+    }
+
+    /**
+     * Reset password with token
+     */
+    @Transactional
+    public String resetPassword(String tokenString, String newPassword) {
+        log.info("Attempting password reset with token");
+
+        // Validate token
+        VerificationToken token = verificationTokenService.validateToken(tokenString);
+
+        // Check token type
+        if (token.getType() != TokenType.PASSWORD_RESET) {
+            throw new InvalidTokenException("Invalid token type for password reset");
+        }
+
+        // Get user
+        User user = token.getUser();
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        // Mark token as used
+        verificationTokenService.markTokenAsVerified(token);
+
+        log.info("Password reset successfully for user: {}", user.getEmail());
+
+        // Send confirmation email
+        emailService.sendPasswordChangedEmail(
+                user.getEmail(),
+                user.getFirstName(),
+                LocalDateTime.now()
+        );
+
+        return authMessages.passwordResetSuccess();
+    }
+
+    @Transactional
+    public AuthResponse verifyMFA(String email, String code) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+
+        if (!mfaService.verifyCode(user, code)) {
+            throw new BadCredentialsException("Invalid or expired MFA code");
+        }
+
+        String token = jwtUtil.generateToken(user.getEmail());
+
+        return AuthResponse.builder()
+                .accessToken(token)
+                .tokenType("Bearer")
+                .expiresIn(jwtUtil.getExpirationTime(token))
+                .user(UserDto.fromEntity(user))
+                .build();
+    }
 }
