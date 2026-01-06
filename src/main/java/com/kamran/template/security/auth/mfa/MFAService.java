@@ -1,6 +1,6 @@
 package com.kamran.template.security.auth.mfa;
 
-import com.kamran.template.security.auth.email.EmailService;
+import com.kamran.template.security.auth.email.AuthEmailService;
 import com.kamran.template.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,7 @@ public class MFAService {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final MFACodeRepository mfaCodeRepository;
-    private final EmailService emailService;
+    private final AuthEmailService emailService;
 
     public String generateAndSendCode(User user) {
         // Delete old codes
