@@ -236,7 +236,7 @@ Safe to push your changes.
 - ✅ **SpotBugs** (must pass - catches real bugs)
 - ✅ **PMD** (must pass - catches code quality issues)
 - ℹ️ **Checkstyle** (informational - style guidelines)
-- ℹ️ **Dependency Security** (available locally - skipped in CI)
+- ❌ **Dependency Security** (disabled in CI due to NVD API issues)
 
 ### Testing
 

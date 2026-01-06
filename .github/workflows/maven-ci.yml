@@ -46,9 +46,6 @@ jobs:
       - name: Compile & Validate
         run: mvn -B -V clean compile -Dspotbugs.skip=true -Dpmd.skip=true
 
-      - name: Check Dependencies
-        run: mvn -B dependency-check:check -Ddependency.check.skip=true
-
   # Test job - Unit tests (blocking)
   test:
     name: Unit Tests
