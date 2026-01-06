@@ -123,7 +123,8 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
-                .message("Invalid Email or Password") // ambiguity
+//                .message("Invalid Email or Password") // ambiguity
+                .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .build();
 
