@@ -44,9 +44,12 @@ jobs:
       - name: Compile
         run: mvn -B -V clean compile -Dspotbugs.skip=true -Dpmd.skip=true
 
-      - name: Run tests
-        run: mvn -B test -Dspotbugs.skip=true -Dpmd.skip=true -Djacoco.skip=true
-        continue-on-error: true
+      - name: Run unit tests
+        run: mvn -B test -Djacoco.skip=false
+
+      - name: Generate JaCoCo coverage report
+        if: success()
+        run: mvn -B jacoco:report
 
       - name: Package application
         run: mvn -B package -DskipTests
@@ -58,11 +61,13 @@ jobs:
           name: application-jar-jdk25
           path: target/*.jar
 
-      - name: Upload test reports
+      - name: Upload test reports and coverage
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-reports-jdk25
           path: |
             target/surefire-reports/**
-            target/site/**
+            target/site/jacoco/**
+            target/spotbugs/**
+            target/pmd/**
