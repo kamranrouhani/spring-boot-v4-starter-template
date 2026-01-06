@@ -1,4 +1,4 @@
-package com.kamran.template.security.auth.email;
+package com.kamran.template.email;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
