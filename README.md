@@ -187,7 +187,7 @@ The application uses Flyway migrations. Initial schema includes:
 ./mvnw spotbugs:check     # Bug detection
 ./mvnw pmd:check          # Code quality
 ./mvnw checkstyle:check   # Code style (informational)
-./mvnw dependency-check:check  # Security vulnerabilities
+./mvnw dependency-check:check -Ddependency.check.skip=false  # Security vulnerabilities
 ```
 
 **Quality Checks (Pre-push):**
@@ -236,6 +236,7 @@ Safe to push your changes.
 - ✅ **SpotBugs** (must pass - catches real bugs)
 - ✅ **PMD** (must pass - catches code quality issues)
 - ℹ️ **Checkstyle** (informational - style guidelines)
+- ℹ️ **Dependency Security** (available locally - skipped in CI)
 
 ### Testing
 
