@@ -168,22 +168,85 @@ The application uses Flyway migrations. Initial schema includes:
 
 ### Code Quality
 
-Run quality checks:
+**CI/CD Quality Pipeline:**
+- **Build & Compile** *(blocking)*: Compilation and validation
+- **Unit Tests** *(blocking)*: 36 comprehensive unit tests
+- **Code Quality** *(blocking)*: SpotBugs & PMD (catch real bugs)
+- **Code Style** *(informational)*: Checkstyle (guidelines, not blocking)
+
+**Local Quality Checks:**
 ```bash
+# Full verification (includes all checks)
 ./mvnw verify
+
+# Quick quality check (recommended before push)
+./scripts/quality-check.sh
+
+# Individual checks
+./mvnw test               # Unit tests
+./mvnw spotbugs:check     # Bug detection
+./mvnw pmd:check          # Code quality
+./mvnw checkstyle:check   # Code style (informational)
+./mvnw dependency-check:check  # Security vulnerabilities
 ```
 
-Includes:
-- Unit tests
-- Integration tests
-- Code coverage (JaCoCo)
-- Static analysis (Checkstyle, PMD, SpotBugs)
-- Security vulnerability scanning
+**Quality Checks (Pre-push):**
+Quality checks run automatically before `git push` to ensure code quality:
+
+```bash
+# Automatic: Runs before every push
+git push  # Quality checks run automatically
+
+# Manual quality check (anytime)
+./scripts/quality-check.sh
+
+# Bypass checks (urgent situations)
+SKIP_QUALITY_CHECKS=1 git push
+
+# Interactive urgent push
+./scripts/push-urgent.sh
+
+# Or set environment variable
+export SKIP_QUALITY_CHECKS=1
+git push  # No checks will run
+```
+
+**Check Results:**
+```bash
+Running comprehensive quality checks...
+========================================
+1. Unit Tests
+Running Unit Tests... PASSED
+
+2. Code Quality Checks
+Running SpotBugs (Bug Detection)... PASSED
+Running PMD (Code Quality)... PASSED
+
+3. Build Check
+Running Clean Build... PASSED
+
+========================================
+All quality checks passed!
+
+Safe to push your changes.
+```
+
+**Quality Gates:**
+- ✅ **Unit Tests** (must pass - catches logic errors)
+- ✅ **SpotBugs** (must pass - catches real bugs)
+- ✅ **PMD** (must pass - catches code quality issues)
+- ℹ️ **Checkstyle** (informational - style guidelines)
 
 ### Testing
 
 The project includes comprehensive unit tests covering business logic, error handling, and edge cases.
 
+**CI/CD Test Pipeline:**
+- **Unit Tests Job**: Runs all 36 unit tests with JaCoCo coverage
+- **Coverage Reports**: Generated and uploaded as artifacts
+- **Test Results**: Surefire reports available for analysis
+
+**Local Testing Commands:**
 ```bash
 # Unit tests only
 ./mvnw test
@@ -191,7 +254,7 @@ The project includes comprehensive unit tests covering business logic, error han
 # Unit tests with coverage report
 ./mvnw test jacoco:report
 
-# Integration tests
+# Integration tests (future)
 ./mvnw verify -Dspring.profiles.active=test
 
 # Run specific test class
@@ -210,6 +273,7 @@ The project includes comprehensive unit tests covering business logic, error han
 **Test Reports:**
 - Test results: `target/surefire-reports/`
 - Coverage reports: `target/site/jacoco/` (open `index.html`)
+- CI artifacts: Available in GitHub Actions workflow runs
 
 ### Building
 
@@ -276,6 +340,11 @@ src/main/resources/
 ├── db/migration/          # Flyway migrations
 ├── templates/email/       # Email templates
 └── application.yaml       # Application configuration
+
+scripts/                    # Development utility scripts
+├── quality-check.sh       # Manual quality checks
+├── push-urgent.sh         # Emergency push bypass
+└── README.md             # Scripts documentation
 ```
 
 ## Future Development
