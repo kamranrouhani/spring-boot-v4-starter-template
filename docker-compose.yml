@@ -45,10 +45,14 @@ services:
       # H2 Console (disabled in Docker)
       H2_CONSOLE_ENABLED: false
 
-      # Flyway Configuration
+      # =============================================================================
+      # FLYWAY
+      # =============================================================================
       SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:-true}
-      SPRING_FLYWAY_BASELINE_ON_MIGRATE: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:-true}
+      SPRING_FLYWAY_CLEAN_DISABLED: "false"
+      SPRING_FLYWAY_CLEAN_ON_STARTUP: "true"
       SPRING_FLYWAY_VALIDATE_ON_MIGRATE: ${SPRING_FLYWAY_VALIDATE_ON_MIGRATE:-true}
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:-true}
 
       # JWT Configuration
       JWT_SECRET: ${JWT_SECRET}
