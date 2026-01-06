@@ -359,6 +359,10 @@ See [`docs/Future Enhancements.md`](docs/Future%20Enhancements.md) for potential
 3. Update documentation as needed
 4. Ensure all quality checks pass
 
+## Deployment
+
+For detailed deployment instructions, configuration requirements, and platform comparisons, see [`docs/Deployment Guide.md`](docs/Deployment%20Guide.md).
+
 ## License
 
 MIT License - see LICENSE file for details.
