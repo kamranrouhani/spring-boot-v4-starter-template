@@ -7,7 +7,7 @@ import com.kamran.template.security.auth.dto.AuthResponse;
 import com.kamran.template.security.auth.dto.LoginRequest;
 import com.kamran.template.security.auth.dto.RegisterRequest;
 import com.kamran.template.security.auth.dto.RegisterResponse;
-import com.kamran.template.security.auth.email.EmailService;
+import com.kamran.template.security.auth.email.AuthEmailService;
 import com.kamran.template.security.auth.mfa.MFARequiredResponse;
 import com.kamran.template.security.auth.mfa.MFAService;
 import com.kamran.template.security.auth.verification_token.TokenType;
@@ -57,7 +57,7 @@ class AuthServiceTest {
     private AuthenticationManager authenticationManager;
 
     @Mock
-    private EmailService emailService;
+    private AuthEmailService emailService;
 
     @Mock
     private VerificationTokenService verificationTokenService;
