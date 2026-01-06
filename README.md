@@ -363,6 +363,8 @@ See [`docs/Future Enhancements.md`](docs/Future%20Enhancements.md) for potential
 
 For detailed deployment instructions, configuration requirements, and platform comparisons, see [`docs/Deployment Guide.md`](docs/Deployment%20Guide.md).
 
+For production readiness assessment and critical implementation guidance, see [`docs/Production Readiness Checklist.md`](docs/Production%20Readiness%20Checklist.md).
+
 ## License
 
 MIT License - see LICENSE file for details.
