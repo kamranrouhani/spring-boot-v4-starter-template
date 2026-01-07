@@ -46,8 +46,8 @@ jobs:
       - name: Compile & Validate
         run: mvn -B -V clean compile -Dspotbugs.skip=true -Dpmd.skip=true
 
-  # Test job - Unit tests (blocking)
-  test:
+  # Unit Tests job (blocking)
+  unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
     needs: build
@@ -75,20 +75,80 @@ jobs:
             ${{ runner.os }}-m2-
 
       - name: Run unit tests
-        run: mvn -B test -Dspotbugs.skip=true -Dpmd.skip=true -Djacoco.skip=false
+        run: mvn -B test -Punit-tests -Dspotbugs.skip=true -Dpmd.skip=true -Djacoco.skip=false
 
       - name: Generate JaCoCo coverage report
         if: success()
         run: mvn -B jacoco:report
 
-      - name: Upload test reports and coverage
+      - name: Upload unit test reports and coverage
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-reports-jdk25
+          name: unit-test-reports-jdk25
           path: |
             target/surefire-reports/**
             target/site/jacoco/**
+
+  # Integration Tests job (blocking)
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: build
+
+    env:
+      MAVEN_OPTS: -Xmx2g
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: testdb
+          POSTGRES_USER: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Restore Maven cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-jdk25-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-jdk25-
+            ${{ runner.os }}-m2-
+
+      - name: Run integration tests
+        run: mvn -B test -Pintegration-tests
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
+          SPRING_DATASOURCE_USERNAME: test
+          SPRING_DATASOURCE_PASSWORD: test
+          SPRING_DATASOURCE_DRIVER: org.postgresql.Driver
+          SPRING_JPA_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+
+      - name: Upload integration test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-reports-jdk25
+          path: |
+            target/surefire-reports/**
 
   # Quality checks - Code analysis (blocking)
   quality:
@@ -142,7 +202,7 @@ jobs:
   package:
     name: Package & Deploy
     runs-on: ubuntu-latest
-    needs: [build, test]  # Depends on build and tests, but not quality
+    needs: [build, unit-tests, integration-tests]  # Depends on build and both test suites
 
     env:
       MAVEN_OPTS: -Xmx2g

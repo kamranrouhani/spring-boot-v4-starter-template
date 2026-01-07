@@ -7,7 +7,7 @@ import com.kamran.template.security.auth.dto.AuthResponse;
 import com.kamran.template.security.auth.dto.LoginRequest;
 import com.kamran.template.security.auth.dto.RegisterRequest;
 import com.kamran.template.security.auth.dto.RegisterResponse;
-import com.kamran.template.security.auth.email.EmailService;
+import com.kamran.template.security.auth.email.AuthEmailService;
 import com.kamran.template.security.auth.mfa.MFARequiredResponse;
 import com.kamran.template.security.auth.mfa.MFAService;
 import com.kamran.template.security.auth.verification_token.TokenType;
@@ -44,7 +44,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
-    private final EmailService emailService;
+    private final AuthEmailService authEmailService;
     private final VerificationTokenService verificationTokenService;
     private final AuthMessages authMessages;
     private final MFAService mfaService;
@@ -92,7 +92,7 @@ public class AuthService {
         String verificationUrl = verificationBaseUrl + "?token=" + token;
 
         // Send verification email (async)
-        emailService.sendVerificationEmail(
+        authEmailService.sendVerificationEmail(
                 savedUser.getEmail(),
                 savedUser.getFirstName(),
                 verificationUrl,
@@ -130,7 +130,7 @@ public class AuthService {
         log.info("Email verified successfully for user: {}", user.getEmail());
 
         // Send welcome email (async)
-        emailService.sendWelcomeEmail(user.getEmail(), user.getFirstName());
+        authEmailService.sendWelcomeEmail(user.getEmail(), user.getFirstName());
 
         return "Email verified successfully! You can now log in.";
     }
@@ -233,7 +233,7 @@ public class AuthService {
 
         String resetUrl = verificationBaseUrl.replace("verify-email", "reset-password") + "?token=" + token;
 
-        emailService.sendPasswordResetEmail(
+        authEmailService.sendPasswordResetEmail(
                 user.getEmail(),
                 user.getFirstName(),
                 resetUrl,
@@ -274,7 +274,7 @@ public class AuthService {
         log.info("Password reset successfully for user: {}", user.getEmail());
 
         // Send confirmation email
-        emailService.sendPasswordChangedEmail(
+        authEmailService.sendPasswordChangedEmail(
                 user.getEmail(),
                 user.getFirstName(),
                 LocalDateTime.now()

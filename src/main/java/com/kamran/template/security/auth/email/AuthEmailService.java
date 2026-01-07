@@ -1,16 +1,14 @@
 package com.kamran.template.security.auth.email;
 
 import com.kamran.template.config.EmailConfig;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import com.kamran.template.email.EmailService;
+import com.kamran.template.email.EmailTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -18,8 +16,9 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class EmailService {
+public class AuthEmailService {
 
+    private final EmailService emailService;
     private final JavaMailSender mailSender;
     private final EmailConfig emailConfig;
     private final TemplateEngine templateEngine;
@@ -43,7 +42,7 @@ public class EmailService {
                 "subject", EmailTemplate.EMAIL_VERIFICATION.getSubject()
         );
 
-        sendTemplatedEmail(to, EmailTemplate.EMAIL_VERIFICATION, variables);
+        emailService.sendTemplatedEmail(to, EmailTemplate.EMAIL_VERIFICATION, variables);
     }
 
     /**
@@ -59,7 +58,7 @@ public class EmailService {
                 "subject", EmailTemplate.WELCOME.getSubject()
         );
 
-        sendTemplatedEmail(to, EmailTemplate.WELCOME, variables);
+        emailService.sendTemplatedEmail(to, EmailTemplate.WELCOME, variables);
     }
 
     /**
@@ -76,7 +75,7 @@ public class EmailService {
                 "subject", EmailTemplate.PASSWORD_RESET.getSubject()
         );
 
-        sendTemplatedEmail(to, EmailTemplate.PASSWORD_RESET, variables);
+        emailService.sendTemplatedEmail(to, EmailTemplate.PASSWORD_RESET, variables);
     }
 
 
@@ -95,53 +94,10 @@ public class EmailService {
                 "subject", EmailTemplate.PASSWORD_CHANGED.getSubject()
         );
 
-        sendTemplatedEmail(to, EmailTemplate.PASSWORD_CHANGED, variables);
+        emailService.sendTemplatedEmail(to, EmailTemplate.PASSWORD_CHANGED, variables);
     }
 
-    /**
-     * Generic method to send templated email
-     *
-     * @param to        Recipient email
-     * @param template  Email template enum
-     * @param variables Template variables (userName, links, etc.)
-     */
-    private void sendTemplatedEmail(String to, EmailTemplate template, Map<String, Object> variables) {
-        try {
-            String htmlContent = processTemplate(template.getTemplateName(), variables);
 
-            sendHtmlEmail(to, template.getSubject(), htmlContent);
-
-            log.info("Email '{}' sent successfull to : {}", template.name(), to);
-        } catch (MessagingException exception) {
-            log.error("Failed to send email '{}' to: {}", template.name(), to, exception);
-        }
-    }
-
-    /**
-     * Process Thymeleaf template with variables
-     */
-    private String processTemplate(String templateName, Map<String, Object> variables) {
-        Context context = new Context();
-        context.setVariables(variables);
-
-        return templateEngine.process("email/" + templateName, context);
-    }
-
-    /**
-     * Send HTML email using JavaMailSender
-     */
-    private void sendHtmlEmail(String to, String subject, String htmlContent)
-            throws MessagingException {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-        helper.setFrom(emailConfig.getFrom());
-        helper.setTo(to);
-        helper.setSubject(subject);
-        helper.setText(htmlContent, true);
-
-        mailSender.send(message);
-    }
 
     @Async("emailTaskExecutor")
     public void sendMFACodeEmail(String to, String userName, String code) {
@@ -151,6 +107,6 @@ public class EmailService {
                 "expiryMinutes", 10,
                 "subject", "Your MFA Code"
         );
-        sendTemplatedEmail(to, EmailTemplate.MFA_CODE, variables);
+        emailService.sendTemplatedEmail(to, EmailTemplate.MFA_CODE, variables);
     }
 }
