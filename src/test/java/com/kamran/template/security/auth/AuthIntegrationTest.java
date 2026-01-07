@@ -16,8 +16,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -239,7 +241,7 @@ class AuthIntegrationTest {
                 .param("token", verificationToken))
                 .andExpect(status().isOk());
 
-        // Verify user is verified
+        // Refresh user from database
         user = userRepository.findByEmail(email).orElseThrow();
         assertThat(user.getEmailVerified()).isTrue();
 
@@ -261,12 +263,6 @@ class AuthIntegrationTest {
                 .param("newPassword", newPassword))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Password reset successfully. You can now log in with your new password."));
-
-        // Verify password was actually changed in database
-        user = userRepository.findByEmail(email).orElseThrow();
-        assertThat(user.getPassword()).isNotNull();
-        // Note: We can't easily verify the exact hashed password without the password encoder,
-        // but we can verify login works with new password
 
         // === STEP 4: LOGIN WITH NEW PASSWORD ===
         mockMvc.perform(post(baseUrl + "/login")
@@ -338,7 +334,7 @@ class AuthIntegrationTest {
         userRepository.save(user);
 
         // === STEP 3: LOGIN - SHOULD REQUIRE MFA ===
-        String mfaLoginResponse = mockMvc.perform(post(baseUrl + "/login")
+        mockMvc.perform(post(baseUrl + "/login")
                 .contentType("application/json")
                 .content("""
                     {
@@ -348,10 +344,7 @@ class AuthIntegrationTest {
                     """.formatted(email, password)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.mfaRequired").value(true))
-                .andExpect(jsonPath("$.message").value("MFA code sent to your email"))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                .andExpect(jsonPath("$.message").value("MFA code sent to your email"));
 
         // === STEP 4: GET MFA CODE FROM DATABASE ===
         final Long userId = user.getId();
@@ -363,7 +356,7 @@ class AuthIntegrationTest {
         assertThat(mfaCode.getCode().length()).isEqualTo(6);
 
         // === STEP 5: VERIFY MFA CODE ===
-        String finalLoginResponse = mockMvc.perform(post(baseUrl + "/verify-mfa")
+        mockMvc.perform(post(baseUrl + "/verify-mfa")
                 .contentType("application/json")
                 .content("""
                     {
@@ -373,10 +366,7 @@ class AuthIntegrationTest {
                     """.formatted(email, mfaCode.getCode())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
-                .andExpect(jsonPath("$.user.email").value(email))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                .andExpect(jsonPath("$.user.email").value(email));
 
         // === STEP 6: VERIFY MFA CODE WAS MARKED AS VERIFIED ===
         MFACode verifiedCode = mfaCodeRepository.findById(mfaCode.getId()).orElseThrow();
@@ -398,5 +388,43 @@ class AuthIntegrationTest {
                     """.formatted(email, password)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.mfaRequired").value(true));
+    }
+
+    /**
+     * Test configuration to mock email services and prevent SMTP connection attempts during tests
+     */
+    @TestConfiguration
+    static class TestEmailConfiguration {
+
+        @Bean
+        @Primary
+        public com.kamran.template.security.auth.email.AuthEmailService authEmailService() {
+            return new com.kamran.template.security.auth.email.AuthEmailService(null, null, null, null) {
+                @Override
+                public void sendVerificationEmail(String to, String userName, String verificationUrl, int expiryHours) {
+                    // No-op for testing - prevents SMTP connection
+                }
+
+                @Override
+                public void sendWelcomeEmail(String to, String userName) {
+                    // No-op for testing - prevents SMTP connection
+                }
+
+                @Override
+                public void sendPasswordResetEmail(String to, String userName, String resetUrl, int expiryHours) {
+                    // No-op for testing - prevents SMTP connection
+                }
+
+                @Override
+                public void sendPasswordChangedEmail(String to, String userName, java.time.LocalDateTime changeDate) {
+                    // No-op for testing - prevents SMTP connection
+                }
+
+                @Override
+                public void sendMFACodeEmail(String to, String userName, String code) {
+                    // No-op for testing - prevents SMTP connection
+                }
+            };
+        }
     }
 }
